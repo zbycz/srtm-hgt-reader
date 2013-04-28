@@ -16,6 +16,7 @@ int srtmLat = 255; //default never valid
 int srtmLon = 255;
 const int secondsPerPx = 3; //arc seconds per pixel (equals cca 90m)
 const int totalPx = 1201;
+char * srtmTile = NULL;
 
 /** Prepares corresponding file if not opened */
 void srtmLoadTile(int latDec, int lonDec){
@@ -37,7 +38,29 @@ void srtmLoadTile(int latDec, int lonDec){
             printf("Error opening %s\n",  filename);
             exit(1);
         }
+        
+#if !SRTMSLIM
+        if(srtmTile == NULL){
+            srtmTile = (char*) malloc(totalPx * totalPx * 2);
+        }
+        
+        fread(srtmTile, 2, (totalPx * totalPx), srtmFd);
+#endif
     }
+}
+
+void srtmClose(){
+    if(srtmFd != NULL){
+        fclose(srtmFd);
+    }
+    
+#if !SRTMSLIM
+    
+    if(srtmTile != NULL){
+        free(srtmTile);
+    }
+    
+#endif
 }
 
 /** Pixel idx from left bottom corner (0-1200) */
@@ -46,10 +69,19 @@ int srtmReadPx(int y, int x){
     int col = x;
     int pos = (row * totalPx + col) * 2;
     
+#if SRTMSLIM
+    
     //seek and read 2 bytes short
-    unsigned char buff[2];// = {0xFF, 0xFB}; //-5 (bigendian)
+    char buff[2];// = {0xFF, 0xFB}; //-5 (bigendian)
     fseek(srtmFd, pos, SEEK_SET);
     fread(&buff, 2, 1, srtmFd);
+    
+#else
+    
+    //set correct buff pointer
+    char * buff = & srtmTile[pos];
+    
+#endif
     
     //solve endianity (using int16_t)
     int16_t hgt = 0 | (buff[0] << 8) | (buff[1] << 0);
@@ -111,27 +143,6 @@ float srtmGetElevation(float lat, float lon){
             height[3] * (1 - dy) * dx;
 
     return hgt;
-}
-      
-
-
-void test();
-
-
-/**
- * Example Usage
- * Download srtm HGT files ie from http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/
- */
-int main() {
-    
-    float h1 = srtmGetElevation(50, 14);
-    float h2 = srtmGetElevation(50.10083, 14.30987);
-    printf("height %f\n", h1);
-    printf("height %f\n", h2);
-    
-    test();
-    
-    return 0;
 }
 
 

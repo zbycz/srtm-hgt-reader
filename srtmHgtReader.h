@@ -10,6 +10,7 @@
 
 float srtmGetElevation(float lat, float lon);
 
+void srtmClose();
 
 #endif	/* SRTMHGTREADER_H */
 

@@ -4,6 +4,7 @@
 #include <math.h>
 #include "srtmHgtReader.h"
 
+#define SRTMSLIM 1
 
 
 //20110320-projizdka-Okor.gpx, heights using CGIAR SRTM and PHP Geotiff reader
@@ -683,4 +684,23 @@ void test(){
     }
 
     printf("Test of 660 values finished OK.");
+}
+
+
+/**
+ * Example Usage
+ * Download srtm HGT files ie from http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/
+ */
+int main() {
+    
+    float h1 = srtmGetElevation(50, 14);
+    float h2 = srtmGetElevation(50.10083, 14.30987);
+    printf("height %f\n", h1);
+    printf("height %f\n", h2);
+    
+    test();
+    
+    srtmClose();
+    
+    return 0;
 }
