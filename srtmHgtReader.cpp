@@ -115,6 +115,9 @@ float srtmGetElevation(float lat, float lon){
       
 
 
+void test();
+
+
 /**
  * Example Usage
  * Download srtm HGT files ie from http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/
@@ -125,6 +128,8 @@ int main() {
     float h2 = srtmGetElevation(50.10083, 14.30987);
     printf("height %f\n", h1);
     printf("height %f\n", h2);
+    
+    test();
     
     return 0;
 }
