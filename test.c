@@ -4,8 +4,6 @@
 #include <math.h>
 #include "srtmHgtReader.h"
 
-#define SRTMSLIM 1
-
 
 //20110320-projizdka-Okor.gpx, heights using CGIAR SRTM and PHP Geotiff reader
 float latlons[660][4] = {
@@ -672,8 +670,9 @@ float latlons[660][4] = {
 };
 
 void test(){
-    
-    for (int i = 0; i < 660; ++i) {
+
+    int i;
+    for (i = 0; i < 660; ++i) {
         latlons[i][3] = srtmGetElevation(latlons[i][0], latlons[i][1]);
         
         
@@ -683,7 +682,7 @@ void test(){
         }
     }
 
-    printf("Test of 660 values finished OK.");
+    printf("Test of 660 values finished OK.\n");
 }
 
 
@@ -694,11 +693,16 @@ void test(){
 int main() {
     
     float h1 = srtmGetElevation(50, 14);
+    printf("height %f (= 271)\n", h1);
     float h2 = srtmGetElevation(50.10083, 14.30987);
-    printf("height %f\n", h1);
-    printf("height %f\n", h2);
+    printf("height %f (= 330.57)\n\n", h2);
     
     test();
+
+    printf("\nsrtmGetAscentDescent(50, 14, 50.10083, 14.30987):\n");
+    //TSrtmAscentDescent ad = srtmGetAscentDescent(48, 12, 50.10083, 20.30987);
+    TSrtmAscentDescent ad = srtmGetAscentDescent(50, 14, 50.10083, 14.30987);
+    printf("ascent:%0.1f = 506.6, descent:%0.1f = 447.1", ad.ascent, ad.descent);
     
     srtmClose();
     
