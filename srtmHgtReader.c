@@ -39,9 +39,11 @@ void srtmLoadTile(int latDec, int lonDec){
         }
         
         char filename[20];
-        sprintf(filename, "%s/N%dE0%d.hgt", folder, latDec, lonDec);
+        sprintf(filename, "%s/%c%02d%c%03d.hgt", folder, 
+					latDec>0?'N':'S', abs(latDec), 
+					lonDec>0?'E':'W', abs(lonDec));
+					
         printf("Opening %s\n", filename);
-        
         srtmFd = fopen(filename, "r");
         
         if(srtmFd == NULL) {
