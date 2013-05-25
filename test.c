@@ -686,6 +686,32 @@ void test(){
 }
 
 
+double distance(double lat1,double lon1,double lat2,double lon2)
+{
+ double dlon = lon1 - lon2;
+ double dlat = lat1 - lat2;
+
+ dlon = dlon * (M_PI/180.0); //degrees to radians
+ dlat = dlat * (M_PI/180.0);
+ 
+ double a1,a2,a,sa,c,d;
+
+ if(dlon==0 && dlat==0)
+   return 0;
+
+ a1 = sin (dlat / 2);
+ a2 = sin (dlon / 2);
+ a = (a1 * a1) + cos (lat1) * cos (lat2) * a2 * a2;
+ sa = sqrt (a);
+ if (sa <= 1.0)
+   {c = 2 * asin (sa);}
+ else
+   {c = 2 * asin (1.0);}
+ d = 6378137 * c; //in meters
+
+ return d;
+}
+
 /**
  * Example Usage
  * Download srtm HGT files ie from http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/
@@ -701,8 +727,13 @@ int main() {
 
     printf("\nsrtmGetAscentDescent(50, 14, 50.10083, 14.30987):\n");
     //TSrtmAscentDescent ad = srtmGetAscentDescent(48, 12, 50.10083, 20.30987);
-    TSrtmAscentDescent ad = srtmGetAscentDescent(50, 14, 50.10083, 14.30987);
-    printf("ascent:%0.1f = 506.6, descent:%0.1f = 447.1", ad.ascent, ad.descent);
+    
+    double dist = distance(50, 14, 50.10083, 14.30987);
+    TSrtmAscentDescent ad = srtmGetAscentDescent(50, 14, 50.10083, 14.30987, dist);
+    
+    printf("ascent:%0.1f = 506.6, descent:%0.1f = 447.1\n", ad.ascent, ad.descent);
+    printf("ascentOn:%0.1f , descentOn:%0.1f\n", ad.ascentOn, ad.descentOn);
+    
     
     srtmClose();
     

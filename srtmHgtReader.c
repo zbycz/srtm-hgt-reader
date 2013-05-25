@@ -15,8 +15,14 @@
 
 
 
-const int secondsPerPx = 3;  //arc seconds per pixel (equals cca 90m)
+//const int secondsPerPx = 1;  //arc seconds per pixel (3 equals cca 90m)
+//const int totalPx = 3601;
+//const char* folder = "aster";
+
+const int secondsPerPx = 3;  //arc seconds per pixel (3 equals cca 90m)
 const int totalPx = 1201;
+const char* folder = "srtm";
+
 FILE* srtmFd = NULL;
 int srtmLat = 255; //default never valid
 int srtmLon = 255;
@@ -33,7 +39,7 @@ void srtmLoadTile(int latDec, int lonDec){
         }
         
         char filename[20];
-        sprintf(filename, "srtm/N%dE0%d.hgt", latDec, lonDec);
+        sprintf(filename, "%s/N%dE0%d.hgt", folder, latDec, lonDec);
         printf("Opening %s\n", filename);
         
         srtmFd = fopen(filename, "r");
@@ -45,9 +51,10 @@ void srtmLoadTile(int latDec, int lonDec){
         
 #if !SRTMSLIM
         if(srtmTile == NULL){
-            srtmTile = (unsigned char*) malloc(totalPx * totalPx * 2);
+            srtmTile = (unsigned char*) malloc(totalPx * totalPx * 2); //allocate only once
         }
         
+        //read the whole tile
         fread(srtmTile, 1, (2 * totalPx * totalPx), srtmFd);
 #endif
     }
@@ -59,11 +66,9 @@ void srtmClose(){
     }
     
 #if !SRTMSLIM
-    
     if(srtmTile != NULL){
         free(srtmTile);
     }
-    
 #endif
 }
 
@@ -147,32 +152,39 @@ float srtmGetElevation(float lat, float lon){
             height[3] * (1 - dy) * dx;
 }
 
-/** Returns */
-TSrtmAscentDescent srtmGetAscentDescent(float lat1, float lon1, float lat2, float lon2){
-    TSrtmAscentDescent ret;
-    ret.ascent = 0;
-    ret.descent = 0;
+
+/** Returns amount of ascent and descent between points */
+TSrtmAscentDescent srtmGetAscentDescent(float lat1, float lon1, float lat2, float lon2, float dist){
+    TSrtmAscentDescent ret = {0};
     
-    
+    //segment we need to devide in "pixels"
     double latDiff = lat2 - lat1;
     double lonDiff = lon2 - lon1;
     
+    //how many pixels there are both in y and x axis
     double latSteps = latDiff * (3600 / 3); // 1/pixelDistance = cca 0.00083
     double lonSteps = lonDiff * (3600 / 3);
     
+    //we use the max of both
     int steps = fmax(fabs(latSteps), fabs(lonSteps));
+
+    //just in case both points are inside one pixel (we need interpolation!)
+    if(steps == 0) steps = 1;
     
+    
+    //set the delta of each step
     double latStep = latDiff / steps;
     double lonStep = lonDiff / steps;
-    
-    //printf("steps %d: %f %f\n", steps, latStep, lonStep);
+    double distStep = dist/steps;
+      //printf("steps %d: %f %f %f\n", steps, latStep, lonStep, distStep);
     
     int i;
     double lat = lat1, lon = lon1;
     float height, lastHeight, eleDiff;
 
+    //get first elevation -> we need eleDiff then
     height = srtmGetElevation(lat, lon);
-    //printf("first: %f %f hgt:%f\n", lat, lon, height);
+      //printf("first: %f %f hgt:%f\n", lat, lon, height);
     
     for(i=0; i<steps; ++i){
         lat += latStep;
@@ -182,10 +194,14 @@ TSrtmAscentDescent srtmGetAscentDescent(float lat1, float lon1, float lat2, floa
         height = srtmGetElevation(lat, lon);
         eleDiff = height - lastHeight;
         
-        if(eleDiff > 0)
+        if(eleDiff > 0){
             ret.ascent += eleDiff;
-        else
+            ret.ascentOn += distStep;
+        }
+        else{
             ret.descent += -eleDiff;
+            ret.descentOn += distStep;
+        }
         
         //printf("LL(%d): %f %f hgt: %0.1f, diff %0.1f\n", i, lat, lon, height, eleDiff);
     }
