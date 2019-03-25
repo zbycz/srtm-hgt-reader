@@ -21,3 +21,10 @@ To convert file in HGT use (apt-get install gdal-bin):
     $ gdal_translate -of SRTMHGT ASTGTM2_N50E014_dem.tif N50E014.HGT
 
 Then uncomment the constants at the beggining of srtmHgtReader.c
+
+
+Author and licence
+------------------
+(c) 2013 Pavel Zbytovský
+
+Licenced under MIT license.
